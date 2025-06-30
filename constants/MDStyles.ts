@@ -24,7 +24,7 @@ const MDStyles: any = {
   },
 
   fence: {
-    backgroundColor: "rgba(0,0,0,1)",
+    backgroundColor: "rgba(0,0,0,0.5)",
     color: "white",
     fontSize: 10,
     padding: 12,
