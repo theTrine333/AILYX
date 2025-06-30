@@ -37,6 +37,17 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "api": {
+        "api_key": "0b4bb788779048f6aac68b7df128b7f9",
+        "main_url": "https://api.aimlapi.com"
+      },
+      "router": {},
+      "eas": {
+        "projectId": "0e6f4b83-1852-4c1f-9407-5bd8bace2637"
+      }
+    },
+    "owner": "tesla254"
   }
 }
