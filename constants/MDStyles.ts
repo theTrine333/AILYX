@@ -4,11 +4,10 @@ const MDStyles: any = {
   body: { color: "white", fontSize: 15, lineHeight: 20 },
 
   code_inline: {
-    backgroundColor: "rgba(0,0,0,.5)",
-    color: "white",
-    paddingHorizontal: 10,
-    paddingVertical: 2,
-    borderRadius: 4,
+    backgroundColor: "transparent",
+    color: "rgba(55,255,55,1)",
+    padding: 10,
+    // borderRadius: 50,
     fontFamily: Platform.OS === "ios" ? "Courier New" : "monospace",
   },
 
