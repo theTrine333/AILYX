@@ -23,7 +23,7 @@ export default StyleSheet.create({
     width: width * 0.9,
     maxHeight: height * 0.16,
     minHeight: height * 0.06,
-    alignSelf: "center",
+    // alignSelf: "center",
     marginHorizontal: 3,
     padding: 5,
     color: "white",

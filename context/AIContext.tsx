@@ -1,9 +1,7 @@
 import {
   BatchSuperAddModels,
   FilterModelsByType,
-  GetModelTypes,
   GetRecentlyUsedModels,
-  GetSuggestedModels,
   MarkModelAsUsed,
   SearchModels,
 } from "@/api/db";
@@ -19,6 +17,17 @@ import React, {
   useState,
 } from "react";
 import { fetchModels, Message } from "../services";
+import {
+  autoSaveConversation,
+  Conversation,
+  deleteConversation,
+  getConversations,
+  getConversationStats,
+  getConversationWithMessages,
+  getFavoriteConversations,
+  searchConversations,
+  toggleConversationFavorite,
+} from "./conversationUtils"; // Import the functions we created above
 
 interface AIContextType {
   models: Model[];
@@ -26,20 +35,53 @@ interface AIContextType {
   suggested: Model[];
   categories: string[];
   searchWord: string;
-  setSearchWord: (word: string) => void;
-  handleSearch: () => Promise<void>;
-  selectedCategory: string;
-  setSelectedCategory: (category: string) => void;
-  setCategories: (categories: string[]) => void;
-  selectedModel: string;
-  setSelectedModel: (model: string) => void;
-  chatMessages: Message[];
   searchResults: Model[];
-  setSearchResults: (models: Model[]) => void;
-  filterModelType: () => Promise<void>;
+  selectedCategory: string;
+  selectedModel: string;
+  chatMessages: Message[];
   state: null | "filter-type-loading" | "filter-type-error";
-  sendMessage: (text: string) => Promise<void>;
   isLoading: boolean;
+
+  // Conversation state
+  currentConversationId: number | null;
+  conversations: Conversation[];
+  conversationStats: {
+    totalConversations: number;
+    totalMessages: number;
+    favoriteConversations: number;
+    modelsUsed: string[];
+  };
+
+  // All setters
+  setModels: (models: Model[]) => void;
+  setRecentlyUsed: (models: Model[]) => void;
+  setSuggested: (models: Model[]) => void;
+  setCategories: (categories: string[]) => void;
+  setSearchWord: (word: string) => void;
+  setSearchResults: (models: Model[]) => void;
+  setSelectedCategory: (category: string) => void;
+  setSelectedModel: (model: string) => void;
+  setChatMessages: (messages: Message[]) => void;
+  setState: (state: null | "filter-type-loading" | "filter-type-error") => void;
+  setIsLoading: (loading: boolean) => void;
+  setCurrentConversationId: (id: number | null) => void;
+  setConversations: (conversations: Conversation[]) => void;
+
+  // Methods
+  handleSearch: () => Promise<void>;
+  filterModelType: () => Promise<void>;
+  sendMessage: (text: string) => Promise<void>;
+
+  // Conversation methods
+  saveCurrentConversation: () => Promise<void>;
+  loadConversation: (conversationId: number) => Promise<void>;
+  deleteConversation: (conversationId: number) => Promise<void>;
+  newConversation: () => void;
+  loadConversations: () => Promise<void>;
+  searchConversations: (query: string) => Promise<Conversation[]>;
+  toggleConversationFavorite: (conversationId: number) => Promise<void>;
+  getFavoriteConversations: () => Promise<Conversation[]>;
+  loadConversationStats: () => Promise<void>;
 }
 
 const AIContext = createContext<AIContextType | undefined>(undefined);
@@ -58,6 +100,19 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
   const [state, setState] = useState<
     "filter-type-loading" | "filter-type-error" | null
   >(null);
+
+  // Conversation state
+  const [currentConversationId, setCurrentConversationId] = useState<
+    number | null
+  >(null);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [conversationStats, setConversationStats] = useState({
+    totalConversations: 0,
+    totalMessages: 0,
+    favoriteConversations: 0,
+    modelsUsed: [],
+  });
+
   const db = SQLite.useSQLiteContext();
 
   const handleSearch = async () => {
@@ -73,9 +128,31 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
     }, 1500);
   };
 
+  // Auto-save conversation when messages change
   useEffect(() => {
-    setChatMessages([]);
-  }, [selectedModel]);
+    if (chatMessages.length > 0) {
+      const saveTimeout = setTimeout(async () => {
+        try {
+          const conversationId = await autoSaveConversation(
+            db,
+            currentConversationId,
+            chatMessages,
+            selectedModel
+          );
+          if (!currentConversationId) {
+            setCurrentConversationId(conversationId);
+          }
+          await loadConversations();
+          await loadConversationStats();
+        } catch (error) {
+          console.error("Failed to auto-save conversation:", error);
+        }
+      }, 2000); // Save after 2 seconds of inactivity
+
+      return () => clearTimeout(saveTimeout);
+    }
+  }, [chatMessages, selectedModel, currentConversationId]);
+
   useEffect(() => {
     if (!searchWord.trim()) {
       setSearchResults([]);
@@ -93,20 +170,12 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
 
         const recent = await GetRecentlyUsedModels(db);
         setRecentlyUsed(recent);
-
-        const suggestions = await GetSuggestedModels(
-          db,
-          "chat-completion",
-          recent.map((m) => m.id)
-        );
-        setSuggested(suggestions);
-
-        const types = await GetModelTypes(db);
-        setCategoriesState(types);
         setSelectedModel(
-          recent[recent.length - 1].id || "google/gemma-3-27b-it"
+          recent[recent.length - 1]?.id || "google/gemma-3-27b-it"
         );
-        setSelectedCategoryState("All");
+
+        await loadConversations();
+        await loadConversationStats();
       } catch (error) {
         console.error("Failed to load models:", error);
       }
@@ -167,10 +236,14 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
         body: JSON.stringify({
           model: selectedModel,
           messages: updated,
-          max_token: 4096,
+          max_tokens: 4096,
           stream: true,
         }),
       });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
       if (!response.body) throw new Error("Streaming not supported");
 
@@ -179,7 +252,6 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
 
       let finalText = "";
 
-      // Append a new assistant message first
       setChatMessages((prev) => [
         ...prev,
         {
@@ -189,74 +261,220 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
         },
       ]);
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
 
-        const chunk = decoder.decode(value);
-        const lines = chunk.split("\n").filter((line) => line.trim() !== "");
+          const chunk = decoder.decode(value, { stream: true });
+          const lines = chunk.split("\n").filter((line) => line.trim() !== "");
 
-        for (const line of lines) {
-          if (line.startsWith("data: ")) {
-            const data = line.replace("data: ", "");
+          for (const line of lines) {
+            if (line.startsWith("data: ")) {
+              const data = line.replace("data: ", "").trim();
 
-            if (data === "[DONE]") break;
-
-            try {
-              const parsed = JSON.parse(data);
-              const delta = parsed.choices?.[0]?.delta?.content;
-
-              if (delta) {
-                finalText += delta;
-
-                // Update last assistant message in the array
-                setChatMessages((prev) => {
-                  const updated = [...prev];
-                  const lastIndex = updated.length - 1;
-                  updated[lastIndex] = {
-                    ...updated[lastIndex],
-                    content: finalText,
-                  };
-                  return updated;
-                });
+              if (data === "[DONE]") {
+                return;
               }
-            } catch (err) {
-              console.error("Failed to parse stream chunk:", err);
+
+              if (data === "") continue;
+
+              try {
+                const parsed = JSON.parse(data);
+                const delta = parsed.choices?.[0]?.delta?.content;
+
+                if (delta) {
+                  finalText += delta;
+
+                  setChatMessages((prev) => {
+                    const updated = [...prev];
+                    const lastIndex = updated.length - 1;
+                    if (lastIndex >= 0) {
+                      updated[lastIndex] = {
+                        ...updated[lastIndex],
+                        content: finalText,
+                      };
+                    }
+                    return updated;
+                  });
+                }
+              } catch (parseErr) {
+                console.error("Failed to parse stream chunk:", parseErr);
+              }
             }
           }
         }
+      } finally {
+        reader.releaseLock();
       }
 
       await MarkModelAsUsed(db, selectedModel);
     } catch (error: any) {
       console.error("Stream error:", error?.response?.data || error.message);
+
+      setChatMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content:
+            "Sorry, I encountered an error while processing your message. Please try again.",
+          timestamp: new Date().toLocaleString(),
+        },
+      ]);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Conversation methods
+  const saveCurrentConversation = async () => {
+    if (chatMessages.length === 0) return;
+
+    try {
+      const conversationId = await autoSaveConversation(
+        db,
+        currentConversationId,
+        chatMessages,
+        selectedModel
+      );
+      if (!currentConversationId) {
+        setCurrentConversationId(conversationId);
+      }
+      await loadConversations();
+      await loadConversationStats();
+    } catch (error) {
+      console.error("Failed to save conversation:", error);
+    }
+  };
+
+  const loadConversation = async (conversationId: number) => {
+    try {
+      const result = await getConversationWithMessages(db, conversationId);
+      if (result) {
+        setChatMessages(result.messages);
+        setCurrentConversationId(conversationId);
+        setSelectedModel(result.conversation.model_id);
+      }
+    } catch (error) {
+      console.error("Failed to load conversation:", error);
+    }
+  };
+
+  const deleteConversationHandler = async (conversationId: number) => {
+    try {
+      await deleteConversation(db, conversationId);
+      if (currentConversationId === conversationId) {
+        newConversation();
+      }
+      await loadConversations();
+      await loadConversationStats();
+    } catch (error) {
+      console.error("Failed to delete conversation:", error);
+    }
+  };
+
+  const newConversation = () => {
+    setChatMessages([]);
+    setCurrentConversationId(null);
+  };
+
+  const loadConversations = async () => {
+    try {
+      const conversations = await getConversations(db);
+      setConversations(conversations);
+    } catch (error) {
+      console.error("Failed to load conversations:", error);
+    }
+  };
+
+  const searchConversationsHandler = async (
+    query: string
+  ): Promise<Conversation[]> => {
+    try {
+      return await searchConversations(db, query);
+    } catch (error) {
+      console.error("Failed to search conversations:", error);
+      return [];
+    }
+  };
+
+  const toggleConversationFavoriteHandler = async (conversationId: number) => {
+    try {
+      await toggleConversationFavorite(db, conversationId);
+      await loadConversations();
+      await loadConversationStats();
+    } catch (error) {
+      console.error("Failed to toggle conversation favorite:", error);
+    }
+  };
+
+  const getFavoriteConversationsHandler = async (): Promise<Conversation[]> => {
+    try {
+      return await getFavoriteConversations(db);
+    } catch (error) {
+      console.error("Failed to get favorite conversations:", error);
+      return [];
+    }
+  };
+
+  const loadConversationStats = async () => {
+    try {
+      const stats: any = await getConversationStats(db);
+      setConversationStats(stats);
+    } catch (error) {
+      console.error("Failed to load conversation stats:", error);
     }
   };
 
   return (
     <AIContext.Provider
       value={{
+        // State values
         models,
         recentlyUsed,
         suggested,
-        handleSearch,
-        searchWord,
-        setSearchWord,
-        searchResults,
-        setSearchResults,
         categories,
-        setCategories: setCategoriesState,
+        searchWord,
+        searchResults,
         selectedCategory,
-        setSelectedCategory: setSelectedCategoryState,
         selectedModel,
-        setSelectedModel,
         chatMessages,
         state,
-        sendMessage,
         isLoading,
+        currentConversationId,
+        conversations,
+        conversationStats,
+
+        // All setters
+        setModels,
+        setRecentlyUsed,
+        setSuggested,
+        setCategories: setCategoriesState,
+        setSearchWord,
+        setSearchResults,
+        setSelectedCategory: setSelectedCategoryState,
+        setSelectedModel,
+        setChatMessages,
+        setState,
+        setIsLoading,
+        setCurrentConversationId,
+        setConversations,
+
+        // Methods
+        handleSearch,
         filterModelType,
+        sendMessage,
+
+        // Conversation methods
+        saveCurrentConversation,
+        loadConversation,
+        deleteConversation: deleteConversationHandler,
+        newConversation,
+        loadConversations,
+        searchConversations: searchConversationsHandler,
+        toggleConversationFavorite: toggleConversationFavoriteHandler,
+        getFavoriteConversations: getFavoriteConversationsHandler,
+        loadConversationStats,
       }}
     >
       {children}

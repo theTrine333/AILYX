@@ -1,3 +1,5 @@
+import { GetRecentlyUsedModels, GetSuggestedModels } from "@/api/db";
+import { Model as ModelType } from "@/api/db.types";
 import Header from "@/components/Header";
 import styles from "@/components/Header/styles";
 import Model from "@/components/Model";
@@ -11,7 +13,8 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import BottomSheet from "@gorhom/bottom-sheet";
 import { DrawerActions } from "@react-navigation/native";
 import { useNavigation } from "expo-router";
-import { useRef, useState } from "react";
+import { useSQLiteContext } from "expo-sqlite";
+import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   ScrollView,
@@ -26,7 +29,43 @@ export default function Explore() {
   const sheetRef = useRef<BottomSheet>(null);
   const navigation = useNavigation();
   const [selectedModelData, setSelectedModelData] = useState<any>(null);
+  const [recents, setRecents] = useState<ModelType[]>([]);
+  const [state, setState] = useState<
+    | null
+    | "loading-suggestions"
+    | "loading-Cartegories"
+    | "loading-types"
+    | "loading-recents"
+  >(null);
   const AI = useAI();
+  const db = useSQLiteContext();
+  const loadData = async () => {
+    setState("loading-recents");
+    const recent: any = await GetRecentlyUsedModels(db);
+    AI.setRecentlyUsed(recent);
+    setTimeout(() => {
+      setState(null);
+    }, 1500);
+    setState("loading-suggestions");
+    const suggestions = await GetSuggestedModels(
+      db,
+      "chat-completion",
+      recent.map((m: ModelType) => m.id)
+    );
+    AI.setSuggested(suggestions);
+    setTimeout(() => {
+      setState(null);
+    }, 1500);
+    setState("loading-Cartegories");
+
+    setTimeout(() => {
+      setState(null);
+    }, 1500);
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
   const handleOpenModelSheet = (model: any) => {
     setSelectedModelData(model);
     sheetRef.current?.snapToIndex(1);

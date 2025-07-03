@@ -42,7 +42,7 @@ export default function RootLayout() {
           </Stack>
           <StatusBar style="auto" />
           <ToastManager
-            useModal={false}
+            // useModal={false}
             duration={3500}
             height={50}
             width={width * 0.8}

@@ -1,9 +1,13 @@
+import History from "@/components/Conversations/History";
+import styles from "@/components/Conversations/styles";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { useRouter } from "expo-router";
 import { Drawer } from "expo-router/drawer";
 import React from "react";
-import { Image, StyleSheet } from "react-native";
+import { Image, Text, TouchableOpacity, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 export default function DrawerLayout() {
+  const router = useRouter();
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <Drawer
@@ -16,9 +20,38 @@ export default function DrawerLayout() {
             <Ionicons name="list-outline" size={30} color={"white"} />
           ),
         }}
+        drawerContent={() => (
+          <View style={styles.drawerContainer}>
+            <View style={styles.drawerHeader}>
+              <Image
+                source={require("@/assets/images/ailyx.png")}
+                style={styles.drawerLogo}
+              />
+              <Text style={styles.drawerTitle}>AILYX</Text>
+            </View>
+
+            <History />
+
+            <View style={styles.drawerFooter}>
+              <TouchableOpacity
+                style={styles.drawerItem}
+                onPress={() => {
+                  router.push("/home/explore");
+                }}
+              >
+                <Ionicons name="grid-outline" size={20} color="white" />
+                <Text style={styles.drawerItemText}>Models</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.drawerItem}>
+                <Ionicons name="settings-outline" size={20} color="white" />
+                <Text style={styles.drawerItemText}>Settings</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
       >
         <Drawer.Screen
-          name="index" // This is the name of the page and must match the url from root
+          name="index"
           options={{
             drawerLabel: "Home",
             headerShown: false,
@@ -32,7 +65,7 @@ export default function DrawerLayout() {
         />
 
         <Drawer.Screen
-          name="explore" // This is the name of the page and must match the url from root
+          name="explore"
           options={{
             drawerLabel: "Models",
             title: "Models",
@@ -51,9 +84,3 @@ export default function DrawerLayout() {
     </GestureHandlerRootView>
   );
 }
-
-const styles = StyleSheet.create({
-  heading: {
-    fontSize: 17,
-  },
-});

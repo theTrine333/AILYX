@@ -126,6 +126,7 @@ export default function HomeScreen() {
               multiline
               value={text}
               onChangeText={setText}
+              autoFocus
               cursorColor={"white"}
               placeholderTextColor={"grey"}
               placeholder="Ask anything..."
