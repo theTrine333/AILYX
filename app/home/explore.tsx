@@ -1,110 +1,220 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import Header from "@/components/Header";
+import styles from "@/components/Header/styles";
+import Model from "@/components/Model";
+import ModelSheet from "@/components/Model/BottomSheet";
+import Sorter from "@/components/Sorter";
+import Suggested from "@/components/Suggested";
+import GlobalStyles, { height, width } from "@/constants/GlobalStyles";
+import { useAI } from "@/context/AIContext";
+import AntDesign from "@expo/vector-icons/AntDesign";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import BottomSheet from "@gorhom/bottom-sheet";
+import { DrawerActions } from "@react-navigation/native";
+import { useNavigation } from "expo-router";
+import { useRef, useState } from "react";
+import {
+  ActivityIndicator,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
-import { Collapsible } from '@/components/Collapsible';
-import { ExternalLink } from '@/components/ExternalLink';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
-import { IconSymbol } from '@/components/ui/IconSymbol';
+export default function Explore() {
+  const sheetRef = useRef<BottomSheet>(null);
+  const navigation = useNavigation();
+  const [selectedModelData, setSelectedModelData] = useState<any>(null);
+  const AI = useAI();
+  const handleOpenModelSheet = (model: any) => {
+    setSelectedModelData(model);
+    sheetRef.current?.snapToIndex(1);
+  };
 
-export default function TabTwoScreen() {
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
-      headerImage={
-        <IconSymbol
-          size={310}
-          color="#808080"
-          name="chevron.left.forwardslash.chevron.right"
-          style={styles.headerImage}
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <View style={GlobalStyles.container}>
+        <Header
+          LeftIcon={<AntDesign name="menuunfold" size={20} color={"white"} />}
+          LeftIconAction={() => {
+            navigation.dispatch(DrawerActions.openDrawer());
+          }}
+          Title={"Explore All Models"}
+          TitleStyles={[
+            styles.icon,
+            { fontSize: 14, fontWeight: "bold", margin: 10 },
+          ]}
+          RightIcon={
+            <Ionicons name="notifications-outline" size={20} color={"white"} />
+          }
         />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Explore</ThemedText>
-      </ThemedView>
-      <ThemedText>This app includes example code to help you get started.</ThemedText>
-      <Collapsible title="File-based routing">
-        <ThemedText>
-          This app has two screens:{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/explore.tsx</ThemedText>
-        </ThemedText>
-        <ThemedText>
-          The layout file in <ThemedText type="defaultSemiBold">app/(tabs)/_layout.tsx</ThemedText>{' '}
-          sets up the tab navigator.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/router/introduction">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Android, iOS, and web support">
-        <ThemedText>
-          You can open this project on Android, iOS, and the web. To open the web version, press{' '}
-          <ThemedText type="defaultSemiBold">w</ThemedText> in the terminal running this project.
-        </ThemedText>
-      </Collapsible>
-      <Collapsible title="Images">
-        <ThemedText>
-          For static images, you can use the <ThemedText type="defaultSemiBold">@2x</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">@3x</ThemedText> suffixes to provide files for
-          different screen densities
-        </ThemedText>
-        <Image source={require('@/assets/images/react-logo.png')} style={{ alignSelf: 'center' }} />
-        <ExternalLink href="https://reactnative.dev/docs/images">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Custom fonts">
-        <ThemedText>
-          Open <ThemedText type="defaultSemiBold">app/_layout.tsx</ThemedText> to see how to load{' '}
-          <ThemedText style={{ fontFamily: 'SpaceMono' }}>
-            custom fonts such as this one.
-          </ThemedText>
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/versions/latest/sdk/font">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Light and dark mode components">
-        <ThemedText>
-          This template has light and dark mode support. The{' '}
-          <ThemedText type="defaultSemiBold">useColorScheme()</ThemedText> hook lets you inspect
-          what the user&apos;s current color scheme is, and so you can adjust UI colors accordingly.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Animations">
-        <ThemedText>
-          This template includes an example of an animated component. The{' '}
-          <ThemedText type="defaultSemiBold">components/HelloWave.tsx</ThemedText> component uses
-          the powerful <ThemedText type="defaultSemiBold">react-native-reanimated</ThemedText>{' '}
-          library to create a waving hand animation.
-        </ThemedText>
-        {Platform.select({
-          ios: (
-            <ThemedText>
-              The <ThemedText type="defaultSemiBold">components/ParallaxScrollView.tsx</ThemedText>{' '}
-              component provides a parallax effect for the header image.
-            </ThemedText>
-          ),
-        })}
-      </Collapsible>
-    </ParallaxScrollView>
+        <ScrollView showsVerticalScrollIndicator={false}>
+          {/* Recent */}
+          {AI.recentlyUsed.length > 0 && (
+            <View
+              style={{
+                width: width,
+                height: height * 0.25,
+              }}
+            >
+              <Text style={GlobalStyles.heading}>Recently used</Text>
+              <ScrollView
+                style={{ width: width, paddingTop: 15 }}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+              >
+                {AI.recentlyUsed.map((item, index) => (
+                  <Suggested
+                    key={item.id || index}
+                    features={item.features}
+                    id={item.id}
+                    info={item.info}
+                    type={item.type}
+                    action={() => {
+                      handleOpenModelSheet(item);
+                    }}
+                  />
+                ))}
+              </ScrollView>
+            </View>
+          )}
+          {/* Suggested */}
+          <View
+            style={{
+              width: width,
+              height: height * 0.25,
+            }}
+          >
+            <Text style={GlobalStyles.heading}>Suggested for you</Text>
+            <ScrollView
+              style={{ width: width, paddingVertical: 15 }}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+            >
+              {AI.suggested.map((item, index) => (
+                <Suggested
+                  key={item.id || index}
+                  features={item.features}
+                  id={item.id}
+                  info={item.info}
+                  type={item.type}
+                  action={() => {
+                    handleOpenModelSheet(item);
+                  }}
+                />
+              ))}
+            </ScrollView>
+          </View>
+          {/* Search bar */}
+          <View
+            style={{
+              width: width * 0.95,
+              height: height * 0.06,
+              marginBottom: 10,
+              alignSelf: "center",
+              borderRadius: 10,
+              backgroundColor: "rgba(255,255,255,0.1)",
+              flexDirection: "row",
+              gap: 10,
+            }}
+          >
+            <TextInput
+              style={{
+                backgroundColor: "transparent",
+                flex: 1,
+                padding: 10,
+                color: "white",
+                alignSelf: "center",
+              }}
+              cursorColor={"white"}
+              placeholderTextColor={"grey"}
+              onChangeText={AI.setSearchWord}
+              placeholder="Search for a model by name"
+            />
+            <TouchableOpacity
+              style={{
+                alignItems: "center",
+                justifyContent: "center",
+                alignSelf: "center",
+                padding: 10,
+              }}
+              hitSlop={20}
+            >
+              <AntDesign name="search1" color={"white"} size={20} />
+            </TouchableOpacity>
+          </View>
+          <Text style={GlobalStyles.heading}>Cartegories</Text>
+          {/* Cartegories */}
+          <ScrollView
+            style={{
+              flex: 1,
+              marginHorizontal: 5,
+              paddingHorizontal: 10,
+              paddingRight: 50,
+              paddingVertical: 5,
+              minHeight: 40,
+              marginTop: 5,
+              flexDirection: "row",
+              gap: 10,
+            }}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+          >
+            {["All", ...AI.categories].map((item, index) => (
+              <Sorter key={index} name={item} />
+            ))}
+            <View style={{ width: 10 }} />
+          </ScrollView>
+          {/* All models */}
+          <ScrollView
+            style={{
+              width: width,
+              marginTop: 10,
+            }}
+            showsHorizontalScrollIndicator={false}
+          >
+            {AI.state === "filter-type-loading" ? (
+              <ActivityIndicator
+                color={"white"}
+                style={{ marginTop: 10, alignSelf: "center" }}
+              />
+            ) : AI.state === "filter-type-error" ? null : AI.searchResults
+                .length > 0 ? (
+              AI.searchResults.map((item, index) => (
+                <Model
+                  features={item.features}
+                  id={item.id}
+                  info={item.info}
+                  type={item.type}
+                  action={() => {
+                    handleOpenModelSheet(item);
+                  }}
+                  key={index}
+                />
+              ))
+            ) : (
+              AI.models.map((item, index) => (
+                <Model
+                  features={item.features}
+                  id={item.id}
+                  info={item.info}
+                  type={item.type}
+                  action={() => {
+                    handleOpenModelSheet(item);
+                  }}
+                  key={index}
+                />
+              ))
+            )}
+            <View style={{ height: 10 }} />
+          </ScrollView>
+        </ScrollView>
+      </View>
+      {/* Bottom Sheet */}
+      {selectedModelData && (
+        <ModelSheet bottomSheetRef={sheetRef} model={selectedModelData} />
+      )}
+    </GestureHandlerRootView>
   );
 }
-
-const styles = StyleSheet.create({
-  headerImage: {
-    color: '#808080',
-    bottom: -90,
-    left: -35,
-    position: 'absolute',
-  },
-  titleContainer: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-});

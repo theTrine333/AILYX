@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "ChatGPT",
-    "slug": "ChatGPT",
+    "name": "AILYX",
+    "slug": "ailyx",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -33,7 +33,9 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
-      ]
+      ],
+      "expo-font",
+      "expo-sqlite"
     ],
     "experiments": {
       "typedRoutes": true

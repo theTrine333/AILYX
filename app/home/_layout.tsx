@@ -21,8 +21,6 @@ export default function DrawerLayout() {
           name="index" // This is the name of the page and must match the url from root
           options={{
             drawerLabel: "Home",
-            title: "",
-            headerTitleStyle: styles.heading,
             headerShown: false,
             drawerIcon: () => (
               <Image
@@ -32,11 +30,13 @@ export default function DrawerLayout() {
             ),
           }}
         />
+
         <Drawer.Screen
           name="explore" // This is the name of the page and must match the url from root
           options={{
             drawerLabel: "Models",
             title: "Models",
+            headerShown: false,
             drawerIcon: () => (
               <Ionicons
                 name="grid-outline"

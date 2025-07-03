@@ -7,6 +7,8 @@ interface HeaderProps {
   containerStyles?: ViewStyle;
   Title?: string;
   TitleStyles?: TextStyle | TextStyle[];
+  Loading?: boolean;
+  TitleAction?: any;
   LeftIconAction?: any;
   LeftIconStyles?: ViewStyle;
   RightIconAction?: any;

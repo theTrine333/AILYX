@@ -1,3 +1,4 @@
+import { width } from "@/constants/GlobalStyles";
 import { AIProvider } from "@/context/AIContext";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import {
@@ -10,7 +11,7 @@ import { Stack } from "expo-router";
 import { SQLiteProvider } from "expo-sqlite";
 import { StatusBar } from "expo-status-bar";
 import "react-native-reanimated";
-
+import ToastManager from "toastify-react-native";
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const [loaded] = useFonts({
@@ -40,6 +41,14 @@ export default function RootLayout() {
             <Stack.Screen name="+not-found" options={{ headerShown: true }} />
           </Stack>
           <StatusBar style="auto" />
+          <ToastManager
+            useModal={false}
+            duration={3500}
+            height={50}
+            width={width * 0.8}
+            style={{ fontSize: 11 }}
+            textStyle={{ fontSize: 11 }}
+          />
         </ThemeProvider>
       </AIProvider>
     </SQLiteProvider>
