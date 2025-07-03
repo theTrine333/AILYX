@@ -15,6 +15,7 @@ export default function DrawerLayout() {
           drawerActiveBackgroundColor: "transparent",
           drawerActiveTintColor: "white",
           headerTitleStyle: styles.heading,
+          headerShown: false,
           drawerLabelStyle: styles.heading,
           drawerIcon: () => (
             <Ionicons name="list-outline" size={30} color={"white"} />
@@ -42,45 +43,19 @@ export default function DrawerLayout() {
                 <Ionicons name="grid-outline" size={20} color="white" />
                 <Text style={styles.drawerItemText}>Models</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.drawerItem}>
+              <TouchableOpacity
+                style={styles.drawerItem}
+                onPress={() => {
+                  router.push("/home/settings");
+                }}
+              >
                 <Ionicons name="settings-outline" size={20} color="white" />
                 <Text style={styles.drawerItemText}>Settings</Text>
               </TouchableOpacity>
             </View>
           </View>
         )}
-      >
-        <Drawer.Screen
-          name="index"
-          options={{
-            drawerLabel: "Home",
-            headerShown: false,
-            drawerIcon: () => (
-              <Image
-                source={require("@/assets/images/ai.png")}
-                style={{ height: 30, width: 30 }}
-              />
-            ),
-          }}
-        />
-
-        <Drawer.Screen
-          name="explore"
-          options={{
-            drawerLabel: "Models",
-            title: "Models",
-            headerShown: false,
-            drawerIcon: () => (
-              <Ionicons
-                name="grid-outline"
-                size={20}
-                color={"white"}
-                style={{ paddingRight: 5 }}
-              />
-            ),
-          }}
-        />
-      </Drawer>
+      ></Drawer>
     </GestureHandlerRootView>
   );
 }

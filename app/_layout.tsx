@@ -19,7 +19,6 @@ export default function RootLayout() {
   });
 
   if (!loaded) {
-    // Async font loading only occurs in development.
     return null;
   }
 
@@ -38,6 +37,7 @@ export default function RootLayout() {
           <Stack screenOptions={{ headerShown: false }}>
             {/* <Stack.Screen name="auth" /> */}
             <Stack.Screen name="home" />
+            <Stack.Screen name="notifications" />
             <Stack.Screen name="+not-found" options={{ headerShown: true }} />
           </Stack>
           <StatusBar style="auto" />

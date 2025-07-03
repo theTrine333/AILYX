@@ -1,4 +1,8 @@
-import { GetRecentlyUsedModels, GetSuggestedModels } from "@/api/db";
+import {
+  BatchSuperAddModels,
+  GetRecentlyUsedModels,
+  GetSuggestedModels,
+} from "@/api/db";
 import { Model as ModelType } from "@/api/db.types";
 import Header from "@/components/Header";
 import styles from "@/components/Header/styles";
@@ -6,13 +10,15 @@ import Model from "@/components/Model";
 import ModelSheet from "@/components/Model/BottomSheet";
 import Sorter from "@/components/Sorter";
 import Suggested from "@/components/Suggested";
+import Recent from "@/components/Suggested/Recent";
 import GlobalStyles, { height, width } from "@/constants/GlobalStyles";
 import { useAI } from "@/context/AIContext";
+import { fetchModels } from "@/services";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import BottomSheet from "@gorhom/bottom-sheet";
 import { DrawerActions } from "@react-navigation/native";
-import { useNavigation } from "expo-router";
+import { useNavigation, useRouter } from "expo-router";
 import { useSQLiteContext } from "expo-sqlite";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -30,11 +36,13 @@ export default function Explore() {
   const navigation = useNavigation();
   const [selectedModelData, setSelectedModelData] = useState<any>(null);
   const [recents, setRecents] = useState<ModelType[]>([]);
+  const router = useRouter();
   const [state, setState] = useState<
     | null
     | "loading-suggestions"
     | "loading-Cartegories"
     | "loading-types"
+    | "loading-all"
     | "loading-recents"
   >(null);
   const AI = useAI();
@@ -56,8 +64,10 @@ export default function Explore() {
     setTimeout(() => {
       setState(null);
     }, 1500);
-    setState("loading-Cartegories");
-
+    setState("loading-all");
+    const data = await fetchModels();
+    AI.setModels(data);
+    await BatchSuperAddModels({ db, models: data });
     setTimeout(() => {
       setState(null);
     }, 1500);
@@ -87,6 +97,9 @@ export default function Explore() {
           RightIcon={
             <Ionicons name="notifications-outline" size={20} color={"white"} />
           }
+          RightIconAction={() => {
+            router.push("/notifications");
+          }}
         />
         <ScrollView showsVerticalScrollIndicator={false}>
           {/* Recent */}
@@ -94,7 +107,7 @@ export default function Explore() {
             <View
               style={{
                 width: width,
-                height: height * 0.25,
+                height: height * 0.18,
               }}
             >
               <Text style={GlobalStyles.heading}>Recently used</Text>
@@ -104,7 +117,7 @@ export default function Explore() {
                 showsHorizontalScrollIndicator={false}
               >
                 {AI.recentlyUsed.map((item, index) => (
-                  <Suggested
+                  <Recent
                     key={item.id || index}
                     features={item.features}
                     id={item.id}
@@ -126,23 +139,32 @@ export default function Explore() {
             }}
           >
             <Text style={GlobalStyles.heading}>Suggested for you</Text>
+
             <ScrollView
               style={{ width: width, paddingVertical: 15 }}
               horizontal
               showsHorizontalScrollIndicator={false}
             >
-              {AI.suggested.map((item, index) => (
-                <Suggested
-                  key={item.id || index}
-                  features={item.features}
-                  id={item.id}
-                  info={item.info}
-                  type={item.type}
-                  action={() => {
-                    handleOpenModelSheet(item);
-                  }}
+              {state === "loading-suggestions" || AI.suggested.length === 0 ? (
+                <ActivityIndicator
+                  size={25}
+                  color={"white"}
+                  style={{ alignSelf: "center" }}
                 />
-              ))}
+              ) : (
+                AI.suggested.map((item, index) => (
+                  <Suggested
+                    key={item.id || index}
+                    features={item.features}
+                    id={item.id}
+                    info={item.info}
+                    type={item.type}
+                    action={() => {
+                      handleOpenModelSheet(item);
+                    }}
+                  />
+                ))
+              )}
             </ScrollView>
           </View>
           {/* Search bar */}
@@ -213,7 +235,7 @@ export default function Explore() {
             }}
             showsHorizontalScrollIndicator={false}
           >
-            {AI.state === "filter-type-loading" ? (
+            {AI.state === "filter-type-loading" || state === "loading-all" ? (
               <ActivityIndicator
                 color={"white"}
                 style={{ marginTop: 10, alignSelf: "center" }}

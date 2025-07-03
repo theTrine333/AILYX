@@ -11,6 +11,7 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import BottomSheet from "@gorhom/bottom-sheet";
 import { DrawerActions, useNavigation } from "@react-navigation/native";
+import { useRouter } from "expo-router";
 import { useSQLiteContext } from "expo-sqlite";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -28,6 +29,7 @@ export default function HomeScreen() {
   const [state, setState] = useState<null | "loading" | "error">();
   const height = useSharedValue(0);
   const AI = useAI();
+  const router = useRouter();
   const [text, setText] = useState<string>("");
   const db = useSQLiteContext();
   const [modelData, setModelData] = useState<Model | any>();
@@ -98,6 +100,9 @@ export default function HomeScreen() {
           RightIcon={
             <Ionicons name="notifications-outline" size={20} color={"white"} />
           }
+          RightIconAction={() => {
+            router.push("/notifications");
+          }}
         />
         {/* Chatarea */}
         <View style={{ flex: 1, marginVertical: 15 }}>

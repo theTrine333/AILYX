@@ -1,6 +1,6 @@
 import {
-  BatchSuperAddModels,
   FilterModelsByType,
+  GetModelTypes,
   GetRecentlyUsedModels,
   MarkModelAsUsed,
   SearchModels,
@@ -164,16 +164,14 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const loadModels = async () => {
       try {
-        const data = await fetchModels();
-        setModels(data);
-        await BatchSuperAddModels({ db, models: data });
-
         const recent = await GetRecentlyUsedModels(db);
         setRecentlyUsed(recent);
         setSelectedModel(
           recent[recent.length - 1]?.id || "google/gemma-3-27b-it"
         );
-
+        const types = await GetModelTypes(db);
+        setCategoriesState(types);
+        setSelectedCategoryState("All");
         await loadConversations();
         await loadConversationStats();
       } catch (error) {
