@@ -5,7 +5,7 @@ const plans = [
     price: "$0",
     period: "forever",
     description: "Perfect for getting started",
-    icon: "brain-outline",
+    icon: "brain",
     color: "#6B7280",
     features: [
       "Google Gemini 3 models only",
@@ -36,10 +36,10 @@ const plans = [
   {
     id: "premium",
     name: "Premium",
-    price: "$200",
+    price: "$360",
     period: "year",
     description: "Complete AI ecosystem access",
-    icon: "crown-outline",
+    icon: "crown",
     color: "#F59E0B",
     features: [
       "Everything in Basic",

@@ -63,16 +63,11 @@ export default function HomeScreen() {
 
   const handleIdClick = async () => {
     setState("loading");
-    if (AI.selectedModel === modelData.id) {
-      sheetRef.current?.snapToIndex(1);
-      setState(null);
-      return;
-    }
     const res = await GetModelByID(db, AI.selectedModel);
     setModelData(res);
     setTimeout(() => {
       setState(null);
-      sheetRef.current?.snapToIndex(1);
+      res && sheetRef.current?.snapToIndex(1);
     }, 1500);
   };
 
@@ -118,6 +113,7 @@ export default function HomeScreen() {
                 content={item.content}
                 sender={item.role === "user" ? "user" : "ai"}
                 timestamp={item.timestamp}
+                router={router}
               />
             )}
           />

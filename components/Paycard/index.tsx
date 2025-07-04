@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import { FontAwesome5, Ionicons } from "@expo/vector-icons";
 import { Text, TouchableOpacity, View } from "react-native";
 import styles from "./styles";
 
@@ -33,7 +33,11 @@ const PlanCard = ({
         <View
           style={[styles.iconContainer, { backgroundColor: plan.color + "20" }]}
         >
-          <Ionicons name={plan.icon} size={28} color={plan.color} />
+          {plan.id === "free" || plan.id === "premium" ? (
+            <FontAwesome5 name={plan.icon} size={28} color={plan.color} />
+          ) : (
+            <Ionicons name={plan.icon} size={28} color={plan.color} />
+          )}
         </View>
         <Text style={styles.planName}>{plan.name}</Text>
         <Text style={styles.planDescription}>{plan.description}</Text>

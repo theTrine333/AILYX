@@ -44,7 +44,7 @@ export default function Explore() {
     | "loading-types"
     | "loading-all"
     | "loading-recents"
-  >("loading-suggestions");
+  >(null);
   const AI = useAI();
   const db = useSQLiteContext();
   const loadData = async () => {

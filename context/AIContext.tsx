@@ -234,6 +234,9 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
         body: JSON.stringify({
           model: selectedModel,
           messages: updated,
+          top_k: 50,
+          top_p: 0.9,
+          temperature: 0.7,
           max_tokens: 4096,
           stream: true,
         }),

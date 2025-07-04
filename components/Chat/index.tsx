@@ -15,10 +15,12 @@ const Index = ({
   content,
   sender,
   timestamp,
+  router,
 }: {
   content: string;
   sender: string;
   timestamp: string;
+  router:any
 }) => {
   const isUser = sender === "user";
   const [copiedCode, setCopiedCode] = useState("");
@@ -27,6 +29,8 @@ const Index = ({
     setCopiedCode(word);
     ToastAndroid.show("Copied to clipboard", ToastAndroid.SHORT);
   };
+
+  
   return (
     <View
       style={[style.messageContainer, isUser && style.userMessageContainer]}
@@ -39,6 +43,16 @@ const Index = ({
               const language = node?.sourceInfo || "unkown";
               const code = node.content;
               const isCopied = code === copiedCode;
+
+              const handleViewCode = (code: string, language: string) => {
+                router.push({
+                  pathname: "/previewer",
+                  params: {
+                    code: code,
+                    language: language,
+                  },
+                });
+              };
               return (
                 <View
                   style={{
@@ -106,7 +120,30 @@ const Index = ({
                       </Text>
                     </TouchableOpacity>
                   </View>
-                  <Text style={MDStyles.fence}>{code}</Text>
+                  <TouchableOpacity
+                    style={{
+                      padding: 10,
+                      width: "100%",
+                      alignItems: "center",
+                      borderRadius: 10,
+                      marginTop: 10,
+                      backgroundColor: "rgba(255,255,255,0.1)",
+                    }}
+                    onPress={() =>{
+                      handleViewCode(code,language)
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontSize: 16,
+                        fontWeight: "bold",
+                        color: "white",
+                      }}
+                    >
+                      Preview
+                    </Text>
+                  </TouchableOpacity>
+                  {/* <Text style={MDStyles.fence}>{code}</Text> */}
                 </View>
               );
             },
