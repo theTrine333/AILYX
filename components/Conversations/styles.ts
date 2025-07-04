@@ -30,7 +30,7 @@ const styles = StyleSheet.create({
   drawerFooter: {
     borderTopWidth: 1,
     borderTopColor: "#333",
-    height: 120,
+    height: 180,
     paddingTop: 20,
     paddingHorizontal: 20,
   },

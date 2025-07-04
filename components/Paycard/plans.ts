@@ -1,0 +1,55 @@
+const plans = [
+  {
+    id: "free",
+    name: "Free",
+    price: "$0",
+    period: "forever",
+    description: "Perfect for getting started",
+    icon: "brain-outline",
+    color: "#6B7280",
+    features: [
+      "Google Gemini 3 models only",
+      "50 messages per day",
+      "Basic chat interface",
+      "Community support",
+      "Upto 1 device access",
+    ],
+  },
+  {
+    id: "basic",
+    name: "Basic",
+    price: "$60",
+    period: "month",
+    description: "Essential AI tools for productivity",
+    icon: "flash-outline",
+    color: "#3B82F6",
+    popular: true,
+    features: [
+      "All Google Gemini models",
+      "OpenAI GPT-4 & GPT-3.5",
+      "Anthropic Claude",
+      "Chat history & export",
+      "Priority support",
+      "Upto 3 devices access",
+    ],
+  },
+  {
+    id: "premium",
+    name: "Premium",
+    price: "$200",
+    period: "year",
+    description: "Complete AI ecosystem access",
+    icon: "crown-outline",
+    color: "#F59E0B",
+    features: [
+      "Everything in Basic",
+      "Latest GPT-4 Turbo models",
+      "Claude 3 Opus",
+      "API access",
+      "Advanced analytics",
+      "Upto 9 devices access",
+    ],
+  },
+];
+
+export default plans;

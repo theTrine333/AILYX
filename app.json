@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "AILYX",
-    "slug": "ailyx",
+    "slug": "ChatGPT",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/ailyx.png",
@@ -16,7 +16,8 @@
         "foregroundImage": "./assets/images/ailyx.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.ailyx.ai"
     },
     "web": {
       "bundler": "metro",

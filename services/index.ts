@@ -11,6 +11,7 @@ export interface Message {
   role: "user" | "assistant" | "system";
   content: string;
   timestamp: string;
+  title?: string;
 }
 
 export const fetchModels = async (): Promise<Model[]> => {

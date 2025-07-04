@@ -1,5 +1,6 @@
 import History from "@/components/Conversations/History";
 import styles from "@/components/Conversations/styles";
+import { SimpleLineIcons } from "@expo/vector-icons";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from "expo-router";
 import { Drawer } from "expo-router/drawer";
@@ -42,6 +43,15 @@ export default function DrawerLayout() {
               >
                 <Ionicons name="grid-outline" size={20} color="white" />
                 <Text style={styles.drawerItemText}>Models</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.drawerItem}
+                onPress={() => {
+                  router.push("/paywall");
+                }}
+              >
+                <SimpleLineIcons name="credit-card" size={20} color="white" />
+                <Text style={styles.drawerItemText}>Plans</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.drawerItem}

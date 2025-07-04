@@ -44,7 +44,7 @@ export default function Explore() {
     | "loading-types"
     | "loading-all"
     | "loading-recents"
-  >(null);
+  >("loading-suggestions");
   const AI = useAI();
   const db = useSQLiteContext();
   const loadData = async () => {
@@ -146,11 +146,19 @@ export default function Explore() {
               showsHorizontalScrollIndicator={false}
             >
               {state === "loading-suggestions" || AI.suggested.length === 0 ? (
-                <ActivityIndicator
-                  size={25}
-                  color={"white"}
-                  style={{ alignSelf: "center" }}
-                />
+                <View
+                  style={{
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: width,
+                  }}
+                >
+                  <ActivityIndicator
+                    size={25}
+                    color={"white"}
+                    style={{ alignSelf: "center" }}
+                  />
+                </View>
               ) : (
                 AI.suggested.map((item, index) => (
                   <Suggested

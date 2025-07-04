@@ -130,6 +130,10 @@ export const deleteConversation = async (
   conversationId: number
 ): Promise<void> => {
   await db.runAsync(`DELETE FROM conversations WHERE id = ?`, [conversationId]);
+  await db.runAsync(
+    "DELETE FROM conversation_messages WHERE conversation_id = ?",
+    [conversationId]
+  );
 };
 
 // Search conversations
@@ -174,10 +178,8 @@ export const getFavoriteConversations = async (
 export const generateConversationTitle = (messages: Message[]): string => {
   const firstUserMessage = messages.find((msg) => msg.role === "user");
   if (!firstUserMessage) return "New Conversation";
-
   const content = firstUserMessage.content.trim();
   if (content.length <= 50) return content;
-
   return content.substring(0, 50) + "...";
 };
 

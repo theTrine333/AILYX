@@ -37,6 +37,7 @@ export default function RootLayout() {
           <Stack screenOptions={{ headerShown: false }}>
             {/* <Stack.Screen name="auth" /> */}
             <Stack.Screen name="home" />
+            <Stack.Screen name="paywall" />
             <Stack.Screen name="notifications" />
             <Stack.Screen name="+not-found" options={{ headerShown: true }} />
           </Stack>
