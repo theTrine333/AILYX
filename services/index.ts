@@ -9,9 +9,15 @@ export const headers = {
 export const Client = new OpenAI({ apiKey: AIML_API_KEY, baseURL: BASE_URL });
 export interface Message {
   role: "user" | "assistant" | "system";
-  content: string;
+  content: string | MessageContent[];
   timestamp: string;
   title?: string;
+}
+
+export interface MessageContent {
+  type: "text" | "image_url";
+  text?: string;
+  image_url?: any;
 }
 
 export const fetchModels = async (): Promise<Model[]> => {

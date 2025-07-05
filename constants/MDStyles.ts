@@ -2,7 +2,6 @@ import { Platform } from "react-native";
 
 const MDStyles: any = {
   body: { color: "white", fontSize: 15, lineHeight: 20 },
-
   code_inline: {
     backgroundColor: "transparent",
     color: "rgba(55,255,55,1)",

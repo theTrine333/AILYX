@@ -68,7 +68,7 @@ const styles = StyleSheet.create({
   popularBadge: {
     position: "absolute",
     top: -12,
-    right: 24,
+    alignSelf:"center",
     backgroundColor: "#F59E0B",
     paddingHorizontal: 16,
     paddingTop: 15,

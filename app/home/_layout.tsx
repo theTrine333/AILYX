@@ -54,7 +54,8 @@ export default function DrawerLayout() {
                 <Text style={styles.drawerItemText}>Plans</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={styles.drawerItem}
+                disabled
+                style={[styles.drawerItem, { opacity: 0.5 }]}
                 onPress={() => {
                   router.push("/home/settings");
                 }}

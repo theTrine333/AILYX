@@ -97,9 +97,8 @@ export default function Explore() {
           RightIcon={
             <Ionicons name="notifications-outline" size={20} color={"white"} />
           }
-          RightIconAction={() => {
-            router.push("/notifications");
-          }}
+          RightIconStyles={{ opacity: 0.5 }}
+          RightIconAction={() => {}}
         />
         <ScrollView showsVerticalScrollIndicator={false}>
           {/* Recent */}

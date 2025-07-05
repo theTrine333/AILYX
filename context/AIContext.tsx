@@ -16,7 +16,7 @@ import React, {
   useEffect,
   useState,
 } from "react";
-import { fetchModels, Message } from "../services";
+import { fetchModels, Message, MessageContent } from "../services";
 import {
   autoSaveConversation,
   Conversation,
@@ -70,7 +70,7 @@ interface AIContextType {
   // Methods
   handleSearch: () => Promise<void>;
   filterModelType: () => Promise<void>;
-  sendMessage: (text: string) => Promise<void>;
+  sendMessage: (text: string, image?: string) => Promise<void>;
 
   // Conversation methods
   saveCurrentConversation: () => Promise<void>;
@@ -167,7 +167,7 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
         const recent = await GetRecentlyUsedModels(db);
         setRecentlyUsed(recent);
         setSelectedModel(
-          recent[recent.length - 1]?.id || "google/gemma-3-27b-it"
+          recent[recent.length - 1]?.id || "meta-llama/Llama-Vision-Free"
         );
         const types = await GetModelTypes(db);
         setCategoriesState(types);
@@ -211,39 +211,71 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
     sorter();
   }, [selectedCategory]);
 
-  const sendMessage = async (text: string) => {
+  const sendMessage = async (text: string, image?: string) => {
     if (!selectedModel) return;
+    let messageContent: string | MessageContent[];
+    if (image) {
+      try {
+        messageContent = [
+          {
+            type: "text",
+            text: text,
+          },
+          {
+            type: "image_url" as const,
+            image_url: JSON.stringify({
+              url: image,
+            }),
+          },
+        ];
+      } catch (error) {
+        console.error("Error converting image to base64:", error);
+        messageContent = text;
+      }
+    } else {
+      messageContent = text;
+    }
 
     const newMessage: Message = {
       role: "user",
-      content: text,
+      content: messageContent,
       timestamp: new Date().toLocaleString(),
     };
 
     const updated = [...chatMessages, newMessage];
     setChatMessages(updated);
-    setIsLoading(true);
+    // setIsLoading(true);
 
     try {
+      // Log the request body for debugging
+      const requestBody = {
+        model: selectedModel,
+        messages: updated,
+        top_k: 50,
+        top_p: 0.9,
+        temperature: 0.7,
+        max_tokens: 4096,
+        stream: true,
+      };
+
+      console.log("Request body:", JSON.stringify(requestBody, null, 2));
+
       const response = await expoFetch(`${BASE_URL}/v1/chat/completions`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${AIML_API_KEY}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          model: selectedModel,
-          messages: updated,
-          top_k: 50,
-          top_p: 0.9,
-          temperature: 0.7,
-          max_tokens: 4096,
-          stream: true,
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        // Log the error response for debugging
+        const errorText = await response.text();
+        console.error("Error response:", errorText);
+        throw new Error(
+          `HTTP error! status: ${response.status} - ${errorText}`
+        );
       }
 
       if (!response.body) throw new Error("Streaming not supported");
